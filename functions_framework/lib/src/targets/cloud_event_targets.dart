@@ -36,7 +36,7 @@ abstract class _CloudEventFunctionTarget<T> extends FunctionTarget {
 }
 
 class CloudEventFunctionTarget<T> extends _CloudEventFunctionTarget<T> {
-  final CloudEventHandler<T> function;
+  final CloudEventHandler function;
 
   @override
   FunctionType get type => FunctionType.cloudevent;
@@ -53,7 +53,7 @@ class CloudEventFunctionTarget<T> extends _CloudEventFunctionTarget<T> {
 
 class CloudEventWithContextFunctionTarget<T>
     extends _CloudEventFunctionTarget<T> {
-  final CloudEventWithContextHandler<T> function;
+  final CloudEventWithContextHandler function;
 
   @override
   FunctionType get type => FunctionType.cloudevent;
