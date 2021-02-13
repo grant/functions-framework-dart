@@ -80,7 +80,11 @@ Future<CloudEvent> _decodeStructured(Request request) async {
     };
   }
 
-  return _decodeValidCloudEvent(jsonObject, 'structured-mode message');
+  return _decodeValidCloudEvent(
+    jsonObject,
+    'structured-mode message',
+    (v) => v,
+  );
 }
 
 const _cloudEventPrefix = 'ce-';
@@ -98,15 +102,16 @@ Future<CloudEvent> _decodeBinary(Request request) async {
     'data': await decodeJson(request),
   };
 
-  return _decodeValidCloudEvent(map, 'binary-mode message');
+  return _decodeValidCloudEvent(map, 'binary-mode message', (v) => v);
 }
 
-CloudEvent _decodeValidCloudEvent(
+CloudEvent<T> _decodeValidCloudEvent<T>(
   Map<String, dynamic> map,
   String messageType,
+  T Function(Object json) fromJsonT,
 ) {
   try {
-    return CloudEvent.fromJson(map);
+    return CloudEvent.fromJson(map, fromJsonT);
   } catch (e, stackTrace) {
     throw BadRequestException(
       400,

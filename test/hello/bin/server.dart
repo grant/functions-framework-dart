@@ -51,6 +51,10 @@ const _functionTargets = <FunctionTarget>{
     function_library.jsonHandler,
     _factory6,
   ),
+  FunctionTarget.cloudEventWithContext(
+    'customTypeHandler',
+    function_library.customTypeHandler,
+  ),
 };
 
 function_library.PubSub _factory5(Object json) {
