@@ -17,8 +17,12 @@ import 'package:meta/meta.dart';
 
 part 'cloud_event.g.dart';
 
-@JsonSerializable(includeIfNull: false, checked: true)
-class CloudEvent {
+@JsonSerializable(
+  includeIfNull: false,
+  checked: true,
+  genericArgumentFactories: true,
+)
+class CloudEvent<T> {
   @JsonKey(required: true)
   final String id;
   @JsonKey(required: true)
@@ -31,7 +35,7 @@ class CloudEvent {
 
   @JsonKey(name: 'datacontenttype')
   final String dataContentType;
-  final Object data;
+  final T data;
 
   @JsonKey(name: 'dataschema')
   final Uri dataSchema;
@@ -50,8 +54,11 @@ class CloudEvent {
     this.time,
   });
 
-  factory CloudEvent.fromJson(Map<String, dynamic> json) =>
-      _$CloudEventFromJson(json);
+  factory CloudEvent.fromJson(
+    Map<String, dynamic> json,
+    T Function(Object json) fromJsonT,
+  ) =>
+      _$CloudEventFromJson(json, fromJsonT);
 
-  Map<String, dynamic> toJson() => _$CloudEventToJson(this);
+  Map<String, dynamic> toJson() => _$CloudEventToJson(this, (val) => val);
 }

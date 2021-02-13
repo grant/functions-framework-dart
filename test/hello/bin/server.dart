@@ -70,6 +70,10 @@ FunctionTarget _functionForName(String name) {
           );
         },
       );
+    case 'customTypeHandler':
+      return FunctionTarget.cloudEventWithContext(
+        function_library.customTypeHandler,
+      );
     default:
       return null;
   }

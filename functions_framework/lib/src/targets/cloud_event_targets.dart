@@ -24,7 +24,18 @@ import '../json_request_utils.dart';
 import '../request_context.dart';
 import '../typedefs.dart';
 
-class CloudEventFunctionTarget extends FunctionTarget {
+abstract class _CloudEventFunctionTarget<T> extends FunctionTarget {
+  _CloudEventFunctionTarget();
+
+  Future<CloudEvent<T>> _eventFromRequest(Request request) async =>
+      _requiredBinaryHeader.every(request.headers.containsKey)
+          ? await _decodeBinary(request, _decode)
+          : await _decodeStructured(request, _decode);
+
+  T _decode(Object json) => json as T;
+}
+
+class CloudEventFunctionTarget<T> extends _CloudEventFunctionTarget<T> {
   final CloudEventHandler function;
 
   @override
@@ -33,16 +44,15 @@ class CloudEventFunctionTarget extends FunctionTarget {
   @override
   FutureOr<Response> handler(Request request) async {
     final event = await _eventFromRequest(request);
-
     await function(event);
-
     return Response.ok('');
   }
 
   CloudEventFunctionTarget(this.function);
 }
 
-class CloudEventWithContextFunctionTarget extends FunctionTarget {
+class CloudEventWithContextFunctionTarget<T>
+    extends _CloudEventFunctionTarget<T> {
   final CloudEventWithContextHandler function;
 
   @override
@@ -51,22 +61,18 @@ class CloudEventWithContextFunctionTarget extends FunctionTarget {
   @override
   Future<Response> handler(Request request) async {
     final event = await _eventFromRequest(request);
-
     final context = contextForRequest(request);
     await function(event, context);
-
     return Response.ok('', headers: context.responseHeaders);
   }
 
   CloudEventWithContextFunctionTarget(this.function);
 }
 
-Future<CloudEvent> _eventFromRequest(Request request) =>
-    _requiredBinaryHeader.every(request.headers.containsKey)
-        ? _decodeBinary(request)
-        : _decodeStructured(request);
-
-Future<CloudEvent> _decodeStructured(Request request) async {
+Future<CloudEvent<T>> _decodeStructured<T>(
+  Request request,
+  T Function(Object json) fromJsonT,
+) async {
   final type = mediaTypeFromRequest(request);
 
   mustBeJson(type);
@@ -79,13 +85,20 @@ Future<CloudEvent> _decodeStructured(Request request) async {
     };
   }
 
-  return _decodeValidCloudEvent(jsonObject, 'structured-mode message');
+  return _decodeValidCloudEvent(
+    jsonObject,
+    'structured-mode message',
+    fromJsonT,
+  );
 }
 
 const _cloudEventPrefix = 'ce-';
 const _clientEventPrefixLength = _cloudEventPrefix.length;
 
-Future<CloudEvent> _decodeBinary(Request request) async {
+Future<CloudEvent<T>> _decodeBinary<T>(
+  Request request,
+  T Function(Object json) fromJsonT,
+) async {
   final type = mediaTypeFromRequest(request);
   mustBeJson(type);
 
@@ -97,15 +110,16 @@ Future<CloudEvent> _decodeBinary(Request request) async {
     'data': await decodeJson(request),
   };
 
-  return _decodeValidCloudEvent(map, 'binary-mode message');
+  return _decodeValidCloudEvent(map, 'binary-mode message', fromJsonT);
 }
 
-CloudEvent _decodeValidCloudEvent(
+CloudEvent<T> _decodeValidCloudEvent<T>(
   Map<String, dynamic> map,
   String messageType,
+  T Function(Object json) fromJsonT,
 ) {
   try {
-    return CloudEvent.fromJson(map);
+    return CloudEvent.fromJson(map, fromJsonT);
   } catch (e, stackTrace) {
     throw BadRequestException(
       400,
