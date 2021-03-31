@@ -50,6 +50,9 @@ class GreetingState extends State<Greeting> {
               TextFormField(
                 autofocus: true,
                 focusNode: _focusNameNode,
+                style: DefaultTextStyle.of(context)
+                    .style
+                    .apply(fontSizeFactor: 2.0),
                 decoration: const InputDecoration(
                   labelText: 'Name',
                   hintText: 'Enter your name...',
@@ -67,7 +70,12 @@ class GreetingState extends State<Greeting> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: ElevatedButton(
                   onPressed: () => _submit(context),
-                  child: const Text('Submit'),
+                  child: Text(
+                    'Submit',
+                    style: DefaultTextStyle.of(context)
+                        .style
+                        .apply(fontSizeFactor: 2.0),
+                  ),
                 ),
               ),
             ],
@@ -87,7 +95,9 @@ class GreetingState extends State<Greeting> {
           // in dev channel though)
           // .clearSnackBars()
           .showSnackBar(SnackBar(
-        content: Text('${model.salutation}, ${model.name}'),
+        content: Text('${model.salutation}, ${model.name}',
+            style:
+                DefaultTextStyle.of(context).style.apply(fontSizeFactor: 2.0)),
       ));
 
       _focusNameNode?.requestFocus();
